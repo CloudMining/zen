@@ -985,9 +985,8 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
                             else
                                 return set_error(serror, SCRIPT_ERR_MISSING_CHECKBLOCKATHEIGHT);
                         }
-                        else {
+                        else
                             return set_error(serror, SCRIPT_ERR_CHECKSIGVERIFY);
-                        }
                     }
                 }
                 break;
