@@ -977,7 +977,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
                             if (!script.GetOp(pc, opcode, vchPushValue))
                                 return set_error(serror, SCRIPT_ERR_BAD_OPCODE);
 #ifdef BITCOIN_ZCASHCONSENSUS_H // zen-tx can't process OP_CHECKBLOCKATHEIGHT because it requires an active chain
-                            if ((opcode == OP_CHECKBLOCKATHEIGHT) || (chainActive.Tip()->nHeight <= 110000))
+                            if ((opcode == OP_CHECKBLOCKATHEIGHT) || (chainActive.Tip()->nHeight <= Params().GetConsensus().nChainsplitIndex))
 #else
                             if ((opcode == OP_CHECKBLOCKATHEIGHT))
 #endif
@@ -1074,7 +1074,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
                             if (!script.GetOp(pc, opcode, vchPushValue))
                                 return set_error(serror, SCRIPT_ERR_BAD_OPCODE);
 #ifdef BITCOIN_ZCASHCONSENSUS_H // zen-tx can't process OP_CHECKBLOCKATHEIGHT because it requires an active chain
-                            if ((opcode == OP_CHECKBLOCKATHEIGHT) || (chainActive.Tip()->nHeight <= 110000))
+                            if ((opcode == OP_CHECKBLOCKATHEIGHT) || (chainActive.Tip()->nHeight <= Params().GetConsensus().nChainsplitIndex))
 #else
                             if ((opcode == OP_CHECKBLOCKATHEIGHT))
 #endif
