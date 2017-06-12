@@ -973,10 +973,21 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
                     stack.push_back(fSuccess ? vchTrue : vchFalse);
                     if (opcode == OP_CHECKSIGVERIFY)
                     {
-                        if (fSuccess)
-                            popstack(stack);
-                        else
+                        if (fSuccess) {
+                            if (!script.GetOp(pc, opcode, vchPushValue))
+                                return set_error(serror, SCRIPT_ERR_BAD_OPCODE);
+#ifdef BITCOIN_ZCASHCONSENSUS_H // zen-tx can't process OP_CHECKBLOCKATHEIGHT because it requires an active chain
+                            if ((opcode == OP_CHECKBLOCKATHEIGHT) || (chainActive.Tip()->nHeight <= 110000))
+#else
+                            if ((opcode == OP_CHECKBLOCKATHEIGHT))
+#endif
+                                popstack(stack);
+                            else
+                                return set_error(serror, SCRIPT_ERR_MISSING_CHECKBLOCKATHEIGHT);
+                        }
+                        else {
                             return set_error(serror, SCRIPT_ERR_CHECKSIGVERIFY);
+                        }
                     }
                 }
                 break;
@@ -1060,8 +1071,18 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
 
                     if (opcode == OP_CHECKMULTISIGVERIFY)
                     {
-                        if (fSuccess)
-                            popstack(stack);
+                        if (fSuccess) {
+                            if (!script.GetOp(pc, opcode, vchPushValue))
+                                return set_error(serror, SCRIPT_ERR_BAD_OPCODE);
+#ifdef BITCOIN_ZCASHCONSENSUS_H // zen-tx can't process OP_CHECKBLOCKATHEIGHT because it requires an active chain
+                            if ((opcode == OP_CHECKBLOCKATHEIGHT) || (chainActive.Tip()->nHeight <= 110000))
+#else
+                            if ((opcode == OP_CHECKBLOCKATHEIGHT))
+#endif
+                                popstack(stack);
+                            else
+                                return set_error(serror, SCRIPT_ERR_MISSING_CHECKBLOCKATHEIGHT);
+                        }
                         else
                             return set_error(serror, SCRIPT_ERR_CHECKMULTISIGVERIFY);
                     }
