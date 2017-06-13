@@ -967,24 +967,21 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
                         return false;
                     }
                     bool fSuccess = checker.CheckSig(vchSig, vchPubKey, script);
-
+                    if (!script.GetOp(pc, opcode, vchPushValue))
+                        return set_error(serror, SCRIPT_ERR_BAD_OPCODE);
+#ifdef BITCOIN_ZCASHCONSENSUS_H // zen-tx can't process OP_CHECKBLOCKATHEIGHT because it requires an active chain
+                    if (!txTo.IsCoinbase() && (opcode != OP_CHECKBLOCKATHEIGHT) && (chainActive.Tip()->nHeight >= Params().GetConsensus().nChainsplitIndex)) {
+                        fSuccess = false;
+                        return set_error(serror, SCRIPT_ERR_MISSING_CHECKBLOCKATHEIGHT);
+                    }
+#endif
                     popstack(stack);
                     popstack(stack);
                     stack.push_back(fSuccess ? vchTrue : vchFalse);
                     if (opcode == OP_CHECKSIGVERIFY)
                     {
-                        if (fSuccess) {
-                            if (!script.GetOp(pc, opcode, vchPushValue))
-                                return set_error(serror, SCRIPT_ERR_BAD_OPCODE);
-#ifdef BITCOIN_ZCASHCONSENSUS_H // zen-tx can't process OP_CHECKBLOCKATHEIGHT because it requires an active chain
-                            if ((opcode == OP_CHECKBLOCKATHEIGHT) || (chainActive.Tip()->nHeight <= Params().GetConsensus().nChainsplitIndex))
-#else
-                            if ((opcode == OP_CHECKBLOCKATHEIGHT))
-#endif
+                        if (fSuccess)
                                 popstack(stack);
-                            else
-                                return set_error(serror, SCRIPT_ERR_MISSING_CHECKBLOCKATHEIGHT);
-                        }
                         else
                             return set_error(serror, SCRIPT_ERR_CHECKSIGVERIFY);
                     }
@@ -1066,22 +1063,20 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
                         return set_error(serror, SCRIPT_ERR_SIG_NULLDUMMY);
                     popstack(stack);
 
+                    if (!script.GetOp(pc, opcode, vchPushValue))
+                        return set_error(serror, SCRIPT_ERR_BAD_OPCODE);
+#ifdef BITCOIN_ZCASHCONSENSUS_H // zen-tx can't process OP_CHECKBLOCKATHEIGHT because it requires an active chain
+                    if (!txTo.IsCoinbase() && (opcode != OP_CHECKBLOCKATHEIGHT) && (chainActive.Tip()->nHeight >= Params().GetConsensus().nChainsplitIndex)) {
+                        fSuccess = false;
+                        return set_error(serror, SCRIPT_ERR_MISSING_CHECKBLOCKATHEIGHT);
+                    }
+#endif
                     stack.push_back(fSuccess ? vchTrue : vchFalse);
 
                     if (opcode == OP_CHECKMULTISIGVERIFY)
                     {
-                        if (fSuccess) {
-                            if (!script.GetOp(pc, opcode, vchPushValue))
-                                return set_error(serror, SCRIPT_ERR_BAD_OPCODE);
-#ifdef BITCOIN_ZCASHCONSENSUS_H // zen-tx can't process OP_CHECKBLOCKATHEIGHT because it requires an active chain
-                            if ((opcode == OP_CHECKBLOCKATHEIGHT) || (chainActive.Tip()->nHeight <= Params().GetConsensus().nChainsplitIndex))
-#else
-                            if ((opcode == OP_CHECKBLOCKATHEIGHT))
-#endif
-                                popstack(stack);
-                            else
-                                return set_error(serror, SCRIPT_ERR_MISSING_CHECKBLOCKATHEIGHT);
-                        }
+                        if (fSuccess)
+                            popstack(stack);
                         else
                             return set_error(serror, SCRIPT_ERR_CHECKMULTISIGVERIFY);
                     }
